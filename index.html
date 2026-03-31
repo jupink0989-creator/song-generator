@@ -531,6 +531,8 @@
           variants: form.lyricCount
         });
 
+        console.log("lyrics response:", data);
+
         renderLyrics(title, data.lyrics || []);
         setStatus(`"${title}" 기준 가사 생성 완료`);
       } catch (err) {
