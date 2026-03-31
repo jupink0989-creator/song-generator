@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>노래 생성기</title>
+</head>
+<body>
+  <h1>노래 제목 생성기</h1>
+
+  <input id="topic" placeholder="주제 입력"><br><br>
+  <input id="keywords" placeholder="키워드 입력"><br><br>
+  <input id="mood" placeholder="무드 입력"><br><br>
+
+  <button onclick="generateTitles()">제목 생성</button>
+
+  <div id="titles"></div>
+
+<script>
+async function generateTitles() {
+  const res = await fetch("/api/titles", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      topic: document.getElementById("topic").value,
+      keywords: document.getElementById("keywords").value,
+      mood: document.getElementById("mood").value
+    })
+  });
+
+  const data = await res.json();
+
+  document.getElementById("titles").innerHTML =
+    data.titles.map(t => `<p>${t}</p>`).join("");
+}
+</script>
+</body>
+</html>
