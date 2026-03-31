@@ -1,36 +1,545 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-  <title>노래 생성기</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>노래 제목 + 가사 생성기</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #f8f8ff 0%, #f5f7fb 100%);
+      color: #111;
+    }
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 16px 60px;
+    }
+    .hero {
+      background: white;
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+      margin-bottom: 22px;
+    }
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 34px;
+    }
+    .hero p {
+      margin: 0;
+      color: #555;
+      line-height: 1.6;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 20px;
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    }
+    .card h2 {
+      margin: 0 0 6px;
+      font-size: 22px;
+    }
+    .sub {
+      margin: 0 0 18px;
+      color: #666;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+    }
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+    .field { margin-bottom: 16px; }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 700px) {
+      .row { grid-template-columns: 1fr; }
+    }
+    .btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .primary {
+      background: #111;
+      color: white;
+    }
+    .secondary {
+      background: #f1f1f5;
+      color: #111;
+    }
+    .ghost {
+      background: #fff;
+      border: 1px solid #ddd;
+      color: #111;
+    }
+    .hint {
+      margin-top: 14px;
+      background: #f6f7fb;
+      border-radius: 16px;
+      padding: 14px;
+      color: #666;
+      font-size: 13px;
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+    .status {
+      margin: 14px 0 0;
+      font-size: 14px;
+      color: #444;
+    }
+    .error {
+      margin-top: 14px;
+      background: #fff0f0;
+      color: #b00020;
+      border: 1px solid #ffd5d5;
+      padding: 14px;
+      border-radius: 14px;
+      line-height: 1.6;
+    }
+    .titles {
+      display: grid;
+      gap: 10px;
+    }
+    .title-item {
+      width: 100%;
+      text-align: left;
+      background: white;
+      border: 1px solid #e4e4ea;
+      border-radius: 18px;
+      padding: 15px 16px;
+      transition: 0.18s ease;
+    }
+    .title-item:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+    .title-item.active {
+      background: #111;
+      color: white;
+      border-color: #111;
+    }
+    .title-num {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-bottom: 6px;
+    }
+    .title-text {
+      font-size: 16px;
+      line-height: 1.5;
+      font-weight: 700;
+    }
+    .empty {
+      border: 1px dashed #d7d7df;
+      border-radius: 18px;
+      padding: 22px;
+      color: #777;
+      font-size: 14px;
+      line-height: 1.6;
+      background: #fcfcfe;
+    }
+    .lyrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      .lyrics-grid { grid-template-columns: 1fr; }
+    }
+    .lyric-card {
+      border: 1px solid #e4e4ea;
+      border-radius: 20px;
+      padding: 18px;
+      background: white;
+    }
+    .lyric-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .lyric-head h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+    .lyric-head p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: #666;
+    }
+    .copy-btn {
+      background: #f3f3f7;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+    }
+    .lyric-text {
+      white-space: pre-wrap;
+      line-height: 1.8;
+      font-size: 14px;
+      color: #222;
+    }
+  </style>
 </head>
 <body>
-  <h1>노래 제목 생성기</h1>
+  <div class="wrap">
+    <div class="hero">
+      <h1>노래 제목 + 가사 생성기</h1>
+      <p>
+        주제와 키워드를 넣으면 제목 10개를 만들고, 원하는 제목을 고르면 그 제목으로 가사 4개를 생성해줘.
+        제목은 유튜브 플레이리스트 채널에 어울리게, 너무 낚시 같지 않으면서도 클릭하고 싶게 최적화되도록 만들었어.
+      </p>
+    </div>
 
-  <input id="topic" placeholder="주제 입력"><br><br>
-  <input id="keywords" placeholder="키워드 입력"><br><br>
-  <input id="mood" placeholder="무드 입력"><br><br>
+    <div class="grid">
+      <div class="card">
+        <h2>입력</h2>
+        <p class="sub">주제, 키워드, 무드, 언어를 넣고 제목을 생성해봐.</p>
 
-  <button onclick="generateTitles()">제목 생성</button>
+        <div class="field">
+          <label for="topic">주제</label>
+          <input id="topic" placeholder="예: 퇴근길, 위로, 밤공기" value="퇴근길, 위로, 밤공기" />
+        </div>
 
-  <div id="titles"></div>
+        <div class="field">
+          <label for="keywords">키워드</label>
+          <textarea id="keywords" placeholder="쉼표로 구분해서 입력">저녁, 지친 하루, 푸른 불빛, 집으로 가는 길</textarea>
+        </div>
 
-<script>
-async function generateTitles() {
-  const res = await fetch("/api/titles", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      topic: document.getElementById("topic").value,
-      keywords: document.getElementById("keywords").value,
-      mood: document.getElementById("mood").value
-    })
-  });
+        <div class="row">
+          <div class="field">
+            <label for="mood">무드</label>
+            <input id="mood" placeholder="예: 따뜻하고 몽글한 위로" value="따뜻하고 몽글한 위로" />
+          </div>
+          <div class="field">
+            <label for="language">언어</label>
+            <select id="language">
+              <option value="한국어" selected>한국어</option>
+              <option value="일본어">일본어</option>
+              <option value="영어">영어</option>
+            </select>
+          </div>
+        </div>
 
-  const data = await res.json();
+        <div class="row">
+          <div class="field">
+            <label for="titleCount">제목 개수</label>
+            <select id="titleCount">
+              <option value="10" selected>10개</option>
+              <option value="12">12개</option>
+              <option value="15">15개</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="lyricCount">가사 버전 수</label>
+            <select id="lyricCount">
+              <option value="4" selected>4개</option>
+              <option value="5">5개</option>
+              <option value="6">6개</option>
+            </select>
+          </div>
+        </div>
 
-  document.getElementById("titles").innerHTML =
-    data.titles.map(t => `<p>${t}</p>`).join("");
-}
-</script>
+        <div class="btns">
+          <button class="primary" onclick="generateTitles()">제목 생성하기</button>
+          <button class="secondary" onclick="resetAll()">초기화</button>
+          <button class="ghost" onclick="regenerateTitles()">비슷한 결로 다시 10개</button>
+        </div>
+
+        <div class="hint">예시
+주제: 봄 카페에서 듣는 위로
+키워드: 햇살, 오후, 커피잔, 천천히, 새 출발
+무드: 잔잔하고 따뜻한 감성
+언어: 한국어</div>
+
+        <div id="status" class="status"></div>
+        <div id="error"></div>
+      </div>
+
+      <div class="card">
+        <h2>생성된 제목</h2>
+        <p class="sub">마음에 드는 제목을 클릭하면 해당 제목으로 가사 4개를 만들어줘.</p>
+        <div id="titlesBox" class="titles">
+          <div class="empty">아직 생성된 제목이 없어. 왼쪽에서 입력하고 제목 생성하기를 눌러줘.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <h2 id="lyricsHeading">가사 시안</h2>
+      <p class="sub">선택한 제목을 바탕으로 서로 다른 느낌의 가사 버전을 만들어줘.</p>
+      <div id="lyricsBox">
+        <div class="empty">제목을 선택하면 여기에 가사 버전이 표시돼.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentTitles = [];
+    let selectedTitle = "";
+    let lastInput = null;
+
+    function setStatus(text) {
+      document.getElementById("status").textContent = text || "";
+    }
+
+    function setError(text) {
+      const el = document.getElementById("error");
+      if (!text) {
+        el.innerHTML = "";
+        return;
+      }
+      el.innerHTML = `<div class="error">${text}</div>`;
+    }
+
+    function getFormData() {
+      return {
+        topic: document.getElementById("topic").value.trim(),
+        keywords: document.getElementById("keywords").value.trim(),
+        mood: document.getElementById("mood").value.trim(),
+        language: document.getElementById("language").value,
+        count: Number(document.getElementById("titleCount").value),
+        lyricCount: Number(document.getElementById("lyricCount").value),
+      };
+    }
+
+    function resetAll() {
+      document.getElementById("topic").value = "퇴근길, 위로, 밤공기";
+      document.getElementById("keywords").value = "저녁, 지친 하루, 푸른 불빛, 집으로 가는 길";
+      document.getElementById("mood").value = "따뜻하고 몽글한 위로";
+      document.getElementById("language").value = "한국어";
+      document.getElementById("titleCount").value = "10";
+      document.getElementById("lyricCount").value = "4";
+
+      currentTitles = [];
+      selectedTitle = "";
+      lastInput = null;
+
+      document.getElementById("titlesBox").innerHTML =
+        `<div class="empty">아직 생성된 제목이 없어. 왼쪽에서 입력하고 제목 생성하기를 눌러줘.</div>`;
+      document.getElementById("lyricsBox").innerHTML =
+        `<div class="empty">제목을 선택하면 여기에 가사 버전이 표시돼.</div>`;
+      document.getElementById("lyricsHeading").textContent = "가사 시안";
+      setStatus("");
+      setError("");
+    }
+
+    async function postJSON(url, body) {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      const text = await res.text();
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(text || "서버 응답을 읽지 못했어.");
+      }
+
+      if (!res.ok) {
+        throw new Error(data.error || "요청 중 오류가 발생했어.");
+      }
+
+      return data;
+    }
+
+    function renderTitles() {
+      const box = document.getElementById("titlesBox");
+
+      if (!currentTitles.length) {
+        box.innerHTML = `<div class="empty">생성된 제목이 없어.</div>`;
+        return;
+      }
+
+      box.innerHTML = currentTitles.map((title, index) => `
+        <button class="title-item ${selectedTitle === title ? "active" : ""}" onclick="generateLyricsByTitle(${index})">
+          <div class="title-num">Title ${index + 1}</div>
+          <div class="title-text">${escapeHtml(title)}</div>
+        </button>
+      `).join("");
+    }
+
+    function renderLyrics(title, lyrics) {
+      const heading = document.getElementById("lyricsHeading");
+      const box = document.getElementById("lyricsBox");
+
+      heading.textContent = `가사 시안 — ${title}`;
+
+      if (!lyrics || !lyrics.length) {
+        box.innerHTML = `<div class="empty">가사가 아직 없어.</div>`;
+        return;
+      }
+
+      box.innerHTML = `
+        <div class="lyrics-grid">
+          ${lyrics.map((lyric, index) => `
+            <div class="lyric-card">
+              <div class="lyric-head">
+                <div>
+                  <h3>가사 버전 ${index + 1}</h3>
+                  <p>${escapeHtml(title)}</p>
+                </div>
+                <button class="copy-btn" onclick="copyText(${JSON.stringify(lyric).replace(/"/g, '&quot;')})">복사</button>
+              </div>
+              <div class="lyric-text">${escapeHtml(lyric)}</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus("복사했어.");
+      } catch {
+        setError("복사에 실패했어.");
+      }
+    }
+
+    async function generateTitles() {
+      setError("");
+      setStatus("제목 만드는 중...");
+
+      const form = getFormData();
+      lastInput = { ...form };
+
+      try {
+        const data = await postJSON("/api/titles", form);
+        currentTitles = data.titles || [];
+        selectedTitle = "";
+        renderTitles();
+
+        document.getElementById("lyricsHeading").textContent = "가사 시안";
+        document.getElementById("lyricsBox").innerHTML =
+          `<div class="empty">제목을 선택하면 여기에 가사 버전이 표시돼.</div>`;
+
+        setStatus(`제목 ${currentTitles.length}개 생성 완료`);
+      } catch (err) {
+        setError(err.message);
+        setStatus("");
+      }
+    }
+
+    async function regenerateTitles() {
+      if (!lastInput) {
+        setError("먼저 제목을 한 번 생성해줘.");
+        return;
+      }
+
+      setError("");
+      setStatus("비슷한 결로 제목 다시 만드는 중...");
+
+      try {
+        const data = await postJSON("/api/titles", {
+          ...lastInput,
+          regenerate: true,
+          previousTitles: currentTitles
+        });
+        currentTitles = data.titles || [];
+        selectedTitle = "";
+        renderTitles();
+
+        document.getElementById("lyricsHeading").textContent = "가사 시안";
+        document.getElementById("lyricsBox").innerHTML =
+          `<div class="empty">새 제목을 선택하면 여기에 가사 버전이 표시돼.</div>`;
+
+        setStatus(`새 제목 ${currentTitles.length}개 생성 완료`);
+      } catch (err) {
+        setError(err.message);
+        setStatus("");
+      }
+    }
+
+    async function generateLyricsByTitle(index) {
+      setError("");
+
+      const title = currentTitles[index];
+      if (!title) return;
+
+      selectedTitle = title;
+      renderTitles();
+
+      document.getElementById("lyricsBox").innerHTML =
+        `<div class="empty">가사 생성 중...</div>`;
+      document.getElementById("lyricsHeading").textContent = `가사 시안 — ${title}`;
+      setStatus("가사 만드는 중...");
+
+      const form = getFormData();
+
+      try {
+        const data = await postJSON("/api/lyrics", {
+          topic: form.topic,
+          keywords: form.keywords,
+          mood: form.mood,
+          language: form.language,
+          title,
+          variants: form.lyricCount
+        });
+
+        renderLyrics(title, data.lyrics || []);
+        setStatus(`"${title}" 기준 가사 생성 완료`);
+      } catch (err) {
+        setError(err.message);
+        document.getElementById("lyricsBox").innerHTML =
+          `<div class="empty">가사 생성에 실패했어.</div>`;
+        setStatus("");
+      }
+    }
+  </script>
 </body>
 </html>
