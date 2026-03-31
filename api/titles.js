@@ -31,13 +31,11 @@ export default async function handler(req, res) {
 너는 감성적인 노래 제목을 잘 짓는 작명가야.
 
 목표:
-- "플레이리스트 제목"이 아니라 "개별 곡 제목"을 만든다
-- 실제 발매곡 제목처럼 자연스럽고 세련되게
+- 플레이리스트 제목이 아니라 개별 곡 제목 만들기
+- 실제 노래 제목처럼 자연스럽고 세련되게
 - 감정선, 장면감, 여운이 느껴지게
-- 너무 설명형 문장 말고, 제목다운 밀도 있는 표현으로
 - 상투적이거나 유치한 제목 금지
 - 같은 패턴 반복 금지
-- 각 제목마다 결이 조금씩 다르게
 
 입력 정보:
 주제: ${topic}
@@ -46,16 +44,12 @@ export default async function handler(req, res) {
 언어: ${language}
 개수: ${count}${previousText}
 
-제목 작성 기준:
-- 제목만 출력
-- 번호 붙이지 말기
-- 따옴표 붙이지 말기
-- 한 줄에 제목 하나씩
+출력 규칙:
+- 반드시 JSON 배열만 출력
+- 설명 절대 금지
+- 예시 형식:
+["푸른 귀가","창가의 온도","저녁의 잔상"]
 - 총 ${count}개
-- "노래 제목"처럼 보여야 함
-- 너무 길지 않게
-- 너무 평범한 문장형 제목보다, 곡명처럼 기억에 남는 표현 우선
-- ${regenerate ? "이전 제목들과 표현이 겹치지 않도록 더 새롭게" : "첫 시도답게 다양하게"} 작성
 `;
 
     const response = await fetch("https://api.openai.com/v1/responses", {
@@ -79,16 +73,34 @@ export default async function handler(req, res) {
       });
     }
 
-    const text = data.output_text || "";
+    const text =
+      data.output_text ||
+      data.output?.map(item =>
+        (item.content || [])
+          .map(c => c.text || "")
+          .join("")
+      ).join("\n") ||
+      "";
 
-    const titles = text
-      .split("\n")
-      .map((v) => v.trim())
-      .map((v) => v.replace(/^[-•\d.\s]+/, "").trim())
-      .filter(Boolean)
-      .slice(0, Number(count) || 10);
+    let titles = [];
 
-    return res.status(200).json({ titles, rawText: text });
+    try {
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed)) {
+        titles = parsed.map(v => String(v).trim()).filter(Boolean);
+      }
+    } catch (e) {
+      titles = text
+        .split("\n")
+        .map(v => v.trim())
+        .map(v => v.replace(/^[-•\d.\s]+/, "").trim())
+        .filter(Boolean);
+    }
+
+    return res.status(200).json({
+      titles: titles.slice(0, Number(count) || 10),
+      rawText: text
+    });
   } catch (error) {
     return res.status(500).json({
       error: error?.message || "서버 오류가 발생했어."
